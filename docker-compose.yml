@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+
+  apache: 
+    build: 
+      context: ./apache
+      dockerfile: Dockerfile
+    ports:
+      - "1234:80"
+    volumes:
+      - ./apache:/var/www/html
+    depends_on:
+      - mysql
+      - nodejs
+      - mongo
+    networks:
+      - app_network
+
+  nodejs:
+    build: 
+      context: ./nodejs
+      dockerfile: Dockerfile
+    ports:
+      - "1235:3000"
+    volumes:
+      - ./nodejs/esport-api:/app
+      - /app/node_modules
+    working_dir: /app
+    command: ["npm", "start"]
+    depends_on:
+      - mysql
+      - mongo
+    networks:
+      - app_network
+
+  mysql: 
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_DATABASE: "library"
+      MYSQL_USER: "user"
+      MYSQL_PASSWORD: "password"
+      MYSQL_ROOT_PASSWORD: "1234"
+    ports:
+      - "1236:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - app_network
+  
+  mongo: 
+    image: mongo
+    restart: always
+    environment:
+      MONGO_USERNAME: esportroot
+      MONGO_PASSWORD: password1234
+    ports:
+      - "1237:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - app_network
+  
+  phpmyadmin: 
+    image: phpmyadmin/phpmyadmin
+    restart: always
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: root
+      PMA_PASSWORD: 1234
+    ports:
+      - "12349:80"
+    depends_on:
+      - mysql
+    networks:
+      - app_network
+
+networks:
+  app_network: 
+
+volumes: 
+  mysql_data:
+  mongo_data: 
